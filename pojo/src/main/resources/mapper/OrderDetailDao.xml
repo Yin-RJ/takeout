@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yinrj.mapper.OrderDetailDao">
+  <resultMap id="BaseResultMap" type="com.yinrj.entity.OrderDetail">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+    <result column="address" jdbcType="VARCHAR" property="address" />
+    <result column="account_id" jdbcType="INTEGER" property="accountId" />
+    <result column="product_id" jdbcType="INTEGER" property="productId" />
+    <result column="deliveryman_id" jdbcType="INTEGER" property="deliverymanId" />
+    <result column="settlement_id" jdbcType="INTEGER" property="settlementId" />
+    <result column="reward_id" jdbcType="INTEGER" property="rewardId" />
+    <result column="price" jdbcType="DECIMAL" property="price" />
+    <result column="date" jdbcType="TIMESTAMP" property="date" />
+  </resultMap>
+  <sql id="Example_Where_Clause">
+    <where>
+      <foreach collection="oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause">
+    <where>
+      <foreach collection="example.oredCriteria" item="criteria" separator="or">
+        <if test="criteria.valid">
+          <trim prefix="(" prefixOverrides="and" suffix=")">
+            <foreach collection="criteria.criteria" item="criterion">
+              <choose>
+                <when test="criterion.noValue">
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue">
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue">
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue">
+                  and ${criterion.condition}
+                  <foreach close=")" collection="criterion.value" item="listItem" open="(" separator=",">
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List">
+    id, `status`, address, account_id, product_id, deliveryman_id, settlement_id, reward_id, 
+    price, `date`
+  </sql>
+  <select id="selectByExample" parameterType="com.yinrj.entity.OrderDetailExample" resultMap="BaseResultMap">
+    select
+    <if test="distinct">
+      distinct
+    </if>
+    <include refid="Base_Column_List" />
+    from order_detail
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null">
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from order_detail
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from order_detail
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.yinrj.entity.OrderDetailExample">
+    delete from order_detail
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.yinrj.entity.OrderDetail" useGeneratedKeys="true">
+    insert into order_detail (`status`, address, account_id, 
+      product_id, deliveryman_id, settlement_id, 
+      reward_id, price, `date`
+      )
+    values (#{status,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, #{accountId,jdbcType=INTEGER}, 
+      #{productId,jdbcType=INTEGER}, #{deliverymanId,jdbcType=INTEGER}, #{settlementId,jdbcType=INTEGER}, 
+      #{rewardId,jdbcType=INTEGER}, #{price,jdbcType=DECIMAL}, #{date,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.yinrj.entity.OrderDetail" useGeneratedKeys="true">
+    insert into order_detail
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="status != null">
+        `status`,
+      </if>
+      <if test="address != null">
+        address,
+      </if>
+      <if test="accountId != null">
+        account_id,
+      </if>
+      <if test="productId != null">
+        product_id,
+      </if>
+      <if test="deliverymanId != null">
+        deliveryman_id,
+      </if>
+      <if test="settlementId != null">
+        settlement_id,
+      </if>
+      <if test="rewardId != null">
+        reward_id,
+      </if>
+      <if test="price != null">
+        price,
+      </if>
+      <if test="date != null">
+        `date`,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="status != null">
+        #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null">
+        #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="accountId != null">
+        #{accountId,jdbcType=INTEGER},
+      </if>
+      <if test="productId != null">
+        #{productId,jdbcType=INTEGER},
+      </if>
+      <if test="deliverymanId != null">
+        #{deliverymanId,jdbcType=INTEGER},
+      </if>
+      <if test="settlementId != null">
+        #{settlementId,jdbcType=INTEGER},
+      </if>
+      <if test="rewardId != null">
+        #{rewardId,jdbcType=INTEGER},
+      </if>
+      <if test="price != null">
+        #{price,jdbcType=DECIMAL},
+      </if>
+      <if test="date != null">
+        #{date,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="com.yinrj.entity.OrderDetailExample" resultType="java.lang.Long">
+    select count(*) from order_detail
+    <if test="_parameter != null">
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map">
+    update order_detail
+    <set>
+      <if test="record.id != null">
+        id = #{record.id,jdbcType=INTEGER},
+      </if>
+      <if test="record.status != null">
+        `status` = #{record.status,jdbcType=VARCHAR},
+      </if>
+      <if test="record.address != null">
+        address = #{record.address,jdbcType=VARCHAR},
+      </if>
+      <if test="record.accountId != null">
+        account_id = #{record.accountId,jdbcType=INTEGER},
+      </if>
+      <if test="record.productId != null">
+        product_id = #{record.productId,jdbcType=INTEGER},
+      </if>
+      <if test="record.deliverymanId != null">
+        deliveryman_id = #{record.deliverymanId,jdbcType=INTEGER},
+      </if>
+      <if test="record.settlementId != null">
+        settlement_id = #{record.settlementId,jdbcType=INTEGER},
+      </if>
+      <if test="record.rewardId != null">
+        reward_id = #{record.rewardId,jdbcType=INTEGER},
+      </if>
+      <if test="record.price != null">
+        price = #{record.price,jdbcType=DECIMAL},
+      </if>
+      <if test="record.date != null">
+        `date` = #{record.date,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map">
+    update order_detail
+    set id = #{record.id,jdbcType=INTEGER},
+      `status` = #{record.status,jdbcType=VARCHAR},
+      address = #{record.address,jdbcType=VARCHAR},
+      account_id = #{record.accountId,jdbcType=INTEGER},
+      product_id = #{record.productId,jdbcType=INTEGER},
+      deliveryman_id = #{record.deliverymanId,jdbcType=INTEGER},
+      settlement_id = #{record.settlementId,jdbcType=INTEGER},
+      reward_id = #{record.rewardId,jdbcType=INTEGER},
+      price = #{record.price,jdbcType=DECIMAL},
+      `date` = #{record.date,jdbcType=TIMESTAMP}
+    <if test="_parameter != null">
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yinrj.entity.OrderDetail">
+    update order_detail
+    <set>
+      <if test="status != null">
+        `status` = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null">
+        address = #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="accountId != null">
+        account_id = #{accountId,jdbcType=INTEGER},
+      </if>
+      <if test="productId != null">
+        product_id = #{productId,jdbcType=INTEGER},
+      </if>
+      <if test="deliverymanId != null">
+        deliveryman_id = #{deliverymanId,jdbcType=INTEGER},
+      </if>
+      <if test="settlementId != null">
+        settlement_id = #{settlementId,jdbcType=INTEGER},
+      </if>
+      <if test="rewardId != null">
+        reward_id = #{rewardId,jdbcType=INTEGER},
+      </if>
+      <if test="price != null">
+        price = #{price,jdbcType=DECIMAL},
+      </if>
+      <if test="date != null">
+        `date` = #{date,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yinrj.entity.OrderDetail">
+    update order_detail
+    set `status` = #{status,jdbcType=VARCHAR},
+      address = #{address,jdbcType=VARCHAR},
+      account_id = #{accountId,jdbcType=INTEGER},
+      product_id = #{productId,jdbcType=INTEGER},
+      deliveryman_id = #{deliverymanId,jdbcType=INTEGER},
+      settlement_id = #{settlementId,jdbcType=INTEGER},
+      reward_id = #{rewardId,jdbcType=INTEGER},
+      price = #{price,jdbcType=DECIMAL},
+      `date` = #{date,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>
