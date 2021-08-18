@@ -37,6 +37,8 @@ public class DeliverymanMassageService {
     public void handleMessage() {
         ConnectionFactory connectionFactory = new ConnectionFactory();
         connectionFactory.setHost(ConfigConstant.MESSAGE_HOST);
+        connectionFactory.setHandshakeTimeout(ConfigConstant.HANDSHAKE_TIMEOUT);
+
         try (Connection connection = connectionFactory.newConnection();
              Channel channel = connection.createChannel()){
 
@@ -57,6 +59,7 @@ public class DeliverymanMassageService {
     DeliverCallback deliverCallback = (((consumerTag, message) -> {
         String msg = new String(message.getBody());
         ConnectionFactory factory = new ConnectionFactory();
+        factory.setHandshakeTimeout(ConfigConstant.HANDSHAKE_TIMEOUT);
         factory.setHost(ConfigConstant.MESSAGE_HOST);
 
         try (Connection connection = factory.newConnection();

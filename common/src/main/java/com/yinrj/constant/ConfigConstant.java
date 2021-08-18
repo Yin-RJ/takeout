@@ -7,5 +7,6 @@ package com.yinrj.constant;
  * @date 2021/8/17
  */
 public interface ConfigConstant {
-    String MESSAGE_HOST = "115.159.208.98";
+    String MESSAGE_HOST = "127.0.0.1";
+    int HANDSHAKE_TIMEOUT = 30000000;
 }

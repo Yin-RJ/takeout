@@ -36,6 +36,7 @@ public class OrderMessageService {
     public void handleMessage() {
         ConnectionFactory connectionFactory = new ConnectionFactory();
         connectionFactory.setHost(ConfigConstant.MESSAGE_HOST);
+        connectionFactory.setHandshakeTimeout(ConfigConstant.HANDSHAKE_TIMEOUT);
 
         // 保证订单微服务能够收到其他微服务发来的消息
         try (Connection connection = connectionFactory.newConnection();
@@ -73,6 +74,7 @@ public class OrderMessageService {
 
         ConnectionFactory connectionFactory = new ConnectionFactory();
         connectionFactory.setHost(ConfigConstant.MESSAGE_HOST);
+        connectionFactory.setHandshakeTimeout(ConfigConstant.HANDSHAKE_TIMEOUT);
 
         try {
             // 将消息体反序列化成DTO
@@ -96,6 +98,19 @@ public class OrderMessageService {
                     }
                     break;
                 case RESTAURANT_CONFIRM:
+                    if (orderMessageDTO.getConfirmed() && orderMessageDTO.getDeliverymanId() != null) {
+                        orderDetail.setStatus(OrderStatusEnum.DELIVERYMAN_CONFIRM);
+                        orderDetail.setDeliverymanId(orderMessageDTO.getDeliverymanId());
+                        orderDetailDao.updateByPrimaryKeySelective(orderDetail);
+//                        try (Connection connection = connectionFactory.newConnection();
+//                             Channel channel = connection.createChannel()){
+//                            String msgToSend = objectMapper.writeValueAsString(orderMessageDTO);
+//                            channel.basicPublish("exchange.order.deliveryman", "key.deliveryman", null, msgToSend.getBytes(StandardCharsets.UTF_8));
+//                        }
+                    } else {
+                        orderDetail.setStatus(OrderStatusEnum.ORDER_FILE);
+                        orderDetailDao.updateByPrimaryKeySelective(orderDetail);
+                    }
                     break;
                 case DELIVERYMAN_CONFIRM:
                     break;

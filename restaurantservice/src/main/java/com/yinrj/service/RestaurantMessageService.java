@@ -39,6 +39,7 @@ public class RestaurantMessageService {
     public void handleMsg() {
         ConnectionFactory connectionFactory = new ConnectionFactory();
         connectionFactory.setHost(ConfigConstant.MESSAGE_HOST);
+        connectionFactory.setHandshakeTimeout(ConfigConstant.HANDSHAKE_TIMEOUT);
 
         try (Connection connection = connectionFactory.newConnection();
             Channel channel = connection.createChannel()){
@@ -62,6 +63,7 @@ public class RestaurantMessageService {
         String msg = new String(message.getBody());
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(ConfigConstant.MESSAGE_HOST);
+        factory.setHandshakeTimeout(ConfigConstant.HANDSHAKE_TIMEOUT);
 
         try (Connection connection = factory.newConnection();
              Channel channel = connection.createChannel()) {
