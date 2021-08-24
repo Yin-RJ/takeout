@@ -26,7 +26,8 @@ public class OrderController {
     private OrderService orderService;
 
     @PostMapping("/create")
-    public void createOrder(@RequestBody OrderCreateVO orderCreateVO) throws IOException, TimeoutException {
+    public void createOrder(@RequestBody OrderCreateVO orderCreateVO) throws IOException, TimeoutException,
+            InterruptedException {
         log.info("[createOrder]createOrderVO: {}", orderCreateVO);
         orderService.createOrder(orderCreateVO);
     }

@@ -10,6 +10,7 @@ import com.yinrj.entity.OrderDetail;
 import com.yinrj.enums.OrderStatusEnum;
 import com.yinrj.mapper.OrderDetailDao;
 import com.yinrj.vo.OrderCreateVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ import java.util.concurrent.TimeoutException;
  * @date 2021/8/17
  */
 @Service
+@Slf4j
 public class OrderService {
     @Autowired
     private OrderDetailDao orderDetailDao;
@@ -33,7 +35,7 @@ public class OrderService {
     @Autowired
     private ObjectMapper objectMapper;
 
-    public void createOrder(OrderCreateVO orderCreateVO) throws IOException, TimeoutException {
+    public void createOrder(OrderCreateVO orderCreateVO) throws IOException, TimeoutException, InterruptedException {
         // 保存数据库
         OrderDetail orderDetail = new OrderDetail();
         BeanUtils.copyProperties(orderCreateVO, orderDetail);
@@ -51,7 +53,16 @@ public class OrderService {
         try (Connection connection = connectionFactory.newConnection();
              Channel channel = connection.createChannel()){
             String msgToSend = objectMapper.writeValueAsString(orderMessageDTO);
+
+            channel.confirmSelect();
+
             channel.basicPublish("exchange.order.restaurant", "key.restaurant", null, msgToSend.getBytes(StandardCharsets.UTF_8));
+            log.info("order service sent msg to restaurant");
+            if (channel.waitForConfirms()) {
+                log.info("order service confirm success");
+            } else {
+                log.info("order service confirm failed");
+            }
         }
     }
 }
