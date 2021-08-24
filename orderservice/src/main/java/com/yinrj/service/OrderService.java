@@ -56,8 +56,11 @@ public class OrderService {
 
             channel.confirmSelect();
 
-            channel.basicPublish("exchange.order.restaurant", "key.restaurant", null, msgToSend.getBytes(StandardCharsets.UTF_8));
-            log.info("order service sent msg to restaurant");
+            for (int i = 0; i < 10; i++) {
+                channel.basicPublish("exchange.order.restaurant", "key.restaurant", null, msgToSend.getBytes(StandardCharsets.UTF_8));
+                log.info("order service sent msg to restaurant: {}", i);
+            }
+
             if (channel.waitForConfirms()) {
                 log.info("order service confirm success");
             } else {
