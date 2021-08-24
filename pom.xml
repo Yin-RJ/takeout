@@ -10,6 +10,7 @@
         <module>restaurantservice</module>
         <module>deliverymanservice</module>
         <module>settlementservice</module>
+        <module>rewardservice</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

@@ -35,5 +35,5 @@ public enum OrderStatusEnum {
     /**
      * 订单创建失败
      */
-    ORDER_FILE
+    ORDER_FAILED
 }

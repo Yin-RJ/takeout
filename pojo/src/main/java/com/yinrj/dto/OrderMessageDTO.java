@@ -56,7 +56,7 @@ public class OrderMessageDTO {
     /**
      * 积分数量
      */
-    private Integer rewardAmount;
+    private BigDecimal rewardAmount;
 
     /**
      * 确认

@@ -61,6 +61,10 @@ public class OrderMessageService {
                     null);
             channel.queueBind("queue.order", "exchange.settlement.order", "key.order");
 
+            // 积分微服务
+            channel.exchangeDeclare("exchange.order.reward", BuiltinExchangeType.TOPIC, true, false, null);
+            channel.queueBind("queue.order", "exchange.order.reward", "key.order");
+
             // 进入监听状态
             channel.basicConsume("queue.order", true, deliverCallback, consumerTag -> {});
 
@@ -99,7 +103,7 @@ public class OrderMessageService {
                             channel.basicPublish("exchange.order.deliveryman", "key.deliveryman", null, msgToSend.getBytes(StandardCharsets.UTF_8));
                         }
                     } else {
-                        orderDetail.setStatus(OrderStatusEnum.ORDER_FILE);
+                        orderDetail.setStatus(OrderStatusEnum.ORDER_FAILED);
                         orderDetailDao.updateByPrimaryKeySelective(orderDetail);
                     }
                     break;
@@ -115,17 +119,39 @@ public class OrderMessageService {
                             channel.basicPublish("exchange.order.settlement", "key.settlement", null, messageToSend.getBytes(StandardCharsets.UTF_8));
                         }
                     } else {
-                        orderDetail.setStatus(OrderStatusEnum.ORDER_FILE);
+                        orderDetail.setStatus(OrderStatusEnum.ORDER_FAILED);
                         orderDetailDao.updateByPrimaryKeySelective(orderDetail);
                     }
                     break;
                 case DELIVERYMAN_CONFIRM:
+                    if (orderMessageDTO.getSettlementId() != null) {
+                        log.info("order service send msg to reward: {}", orderMessageDTO);
+                        orderDetail.setStatus(OrderStatusEnum.SETTLEMENT_CONFIRM);
+                        orderDetail.setSettlementId(orderMessageDTO.getSettlementId());
+                        orderDetailDao.updateByPrimaryKeySelective(orderDetail);
+
+                        try (Connection connection = connectionFactory.newConnection();
+                             Channel channel = connection.createChannel()){
+                            String msgToSend = objectMapper.writeValueAsString(orderMessageDTO);
+                            channel.basicPublish("exchange.order.reward", "key.reward", null, msgToSend.getBytes(StandardCharsets.UTF_8));
+                        }
+                    } else {
+                        orderDetail.setStatus(OrderStatusEnum.ORDER_FAILED);
+                        orderDetailDao.updateByPrimaryKeySelective(orderDetail);
+                    }
                     break;
                 case SETTLEMENT_CONFIRM:
+                    if (orderMessageDTO.getRewardId() != null) {
+                        orderDetail.setStatus(OrderStatusEnum.ORDER_CREATED);
+                        orderDetail.setRewardId(orderMessageDTO.getRewardId());
+                    } else {
+                        orderDetail.setStatus(OrderStatusEnum.ORDER_FAILED);
+                    }
+                    orderDetailDao.updateByPrimaryKeySelective(orderDetail);
                     break;
                 case ORDER_CREATED:
                     break;
-                case ORDER_FILE:
+                case ORDER_FAILED:
                     break;
             }
         } catch (Exception e) {
