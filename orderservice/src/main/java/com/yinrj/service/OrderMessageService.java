@@ -55,6 +55,12 @@ public class OrderMessageService {
 
             channel.queueBind("queue.order", "exchange.order.deliveryman", "key.order");
 
+            // 订单微服务和结算微服务的交换机
+            channel.exchangeDeclare("exchange.order.settlement", BuiltinExchangeType.FANOUT, true, false, null);
+            channel.exchangeDeclare("exchange.settlement.order", BuiltinExchangeType.FANOUT, true, false,
+                    null);
+            channel.queueBind("queue.order", "exchange.settlement.order", "key.order");
+
             // 进入监听状态
             channel.basicConsume("queue.order", true, deliverCallback, consumerTag -> {});
 
@@ -98,15 +104,16 @@ public class OrderMessageService {
                     }
                     break;
                 case RESTAURANT_CONFIRM:
-                    if (orderMessageDTO.getConfirmed() && orderMessageDTO.getDeliverymanId() != null) {
+                    if (orderMessageDTO.getDeliverymanId() != null) {
                         orderDetail.setStatus(OrderStatusEnum.DELIVERYMAN_CONFIRM);
                         orderDetail.setDeliverymanId(orderMessageDTO.getDeliverymanId());
                         orderDetailDao.updateByPrimaryKeySelective(orderDetail);
-//                        try (Connection connection = connectionFactory.newConnection();
-//                             Channel channel = connection.createChannel()){
-//                            String msgToSend = objectMapper.writeValueAsString(orderMessageDTO);
-//                            channel.basicPublish("exchange.order.deliveryman", "key.deliveryman", null, msgToSend.getBytes(StandardCharsets.UTF_8));
-//                        }
+
+                        try (Connection connection = connectionFactory.newConnection();
+                            Channel channel = connection.createChannel()) {
+                            String messageToSend = objectMapper.writeValueAsString(orderMessageDTO);
+                            channel.basicPublish("exchange.order.settlement", "key.settlement", null, messageToSend.getBytes(StandardCharsets.UTF_8));
+                        }
                     } else {
                         orderDetail.setStatus(OrderStatusEnum.ORDER_FILE);
                         orderDetailDao.updateByPrimaryKeySelective(orderDetail);
