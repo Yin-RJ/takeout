@@ -2,6 +2,7 @@ package com.yinrj.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.ConfirmListener;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.yinrj.constant.ConfigConstant;
@@ -56,10 +57,38 @@ public class OrderService {
 
             channel.confirmSelect();
 
+            ConfirmListener confirmListener = new ConfirmListener() {
+                /**
+                 * 成功会被调用
+                 * @param deliveryTag 发送端的消息序号
+                 * @param multiple 多条消息还是单条消息
+                 * @throws IOException
+                 */
+                @Override
+                public void handleAck(long deliveryTag, boolean multiple) throws IOException {
+                    log.info("Ack, deliveryTag: {}, multiple: {}", deliveryTag, multiple);
+                }
+
+                /**
+                 * 失败会被调用
+                 * @param deliveryTag
+                 * @param multiple
+                 * @throws IOException
+                 */
+                @Override
+                public void handleNack(long deliveryTag, boolean multiple) throws IOException {
+                    log.info("Nack, deliveryTag: {}, multiple: {}", deliveryTag, multiple);
+                }
+            };
+            channel.addConfirmListener(confirmListener);
+
             for (int i = 0; i < 10; i++) {
                 channel.basicPublish("exchange.order.restaurant", "key.restaurant", null, msgToSend.getBytes(StandardCharsets.UTF_8));
                 log.info("order service sent msg to restaurant: {}", i);
             }
+
+
+            Thread.sleep(10000l);
 
             if (channel.waitForConfirms()) {
                 log.info("order service confirm success");
