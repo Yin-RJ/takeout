@@ -35,6 +35,8 @@ public class RestaurantMessageService {
     @Autowired
     private RestaurantDao restaurantDao;
 
+    Channel channel;
+
     @Async
     public void handleMsg() {
         ConnectionFactory connectionFactory = new ConnectionFactory();
@@ -42,7 +44,9 @@ public class RestaurantMessageService {
         connectionFactory.setHandshakeTimeout(ConfigConstant.HANDSHAKE_TIMEOUT);
 
         try (Connection connection = connectionFactory.newConnection();
-            Channel channel = connection.createChannel()){
+             Channel channel = connection.createChannel()) {
+
+            this.channel = channel;
 
             channel.exchangeDeclare("exchange.order.restaurant", BuiltinExchangeType.DIRECT, true, false, null);
 
@@ -50,7 +54,8 @@ public class RestaurantMessageService {
 
             channel.queueBind("queue.restaurant", "exchange.order.restaurant", "key.restaurant");
 
-            channel.basicConsume("queue.restaurant", true, deliverCallback, consumerTag -> {});
+            channel.basicConsume("queue.restaurant", false, deliverCallback, consumerTag -> {
+            });
             while (true) {
                 Thread.sleep(1000000l);
             }
@@ -61,48 +66,37 @@ public class RestaurantMessageService {
 
     DeliverCallback deliverCallback = (((consumerTag, message) -> {
         String msg = new String(message.getBody());
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setHost(ConfigConstant.MESSAGE_HOST);
-        factory.setHandshakeTimeout(ConfigConstant.HANDSHAKE_TIMEOUT);
 
-        // 走出try块的时候connection和channel都会被关掉
-        try (Connection connection = factory.newConnection();
-             Channel channel = connection.createChannel()) {
-            OrderMessageDTO orderMessageDTO = objectMapper.readValue(msg, OrderMessageDTO.class);
+        OrderMessageDTO orderMessageDTO = objectMapper.readValue(msg, OrderMessageDTO.class);
 
-            Product product = productDao.selectByPrimaryKey(orderMessageDTO.getProductId());
-            if (product == null) {
-                throw new RuntimeException("product is not exist");
-            }
-            Restaurant restaurant = restaurantDao.selectByPrimaryKey(product.getRestaurantId());
-            if (restaurant == null) {
-                throw new RuntimeException("restaurant is not exist");
-            }
-
-            if (product.getStatus() == ProductStatusEnum.AVAILABLE && restaurant.getStatus() == RestaurantStatusEnum.OPEN) {
-                orderMessageDTO.setConfirmed(true);
-                orderMessageDTO.setPrice(product.getPrice());
-            } else {
-                orderMessageDTO.setConfirmed(false);
-            }
-
-            channel.addReturnListener(new ReturnCallback() {
-                @Override
-                public void handle(Return returnMessage) {
-                    log.info("Message return: {}", returnMessage);
-                }
-            });
-
-            String msgToSend = objectMapper.writeValueAsString(orderMessageDTO);
-            // mandatory为true的时候表示开启了消息返回机制，如果没有路由到相应的队列，则会调用回调函数ReturnListener
-            channel.basicPublish("exchange.order.restaurant", "key.order", true, null,
-                    msgToSend.getBytes(StandardCharsets.UTF_8));
-
-            Thread.sleep(1000);
-
-
-        } catch (TimeoutException | InterruptedException e) {
-            log.error(e.getMessage(), e);
+        Product product = productDao.selectByPrimaryKey(orderMessageDTO.getProductId());
+        if (product == null) {
+            throw new RuntimeException("product is not exist");
         }
+        Restaurant restaurant = restaurantDao.selectByPrimaryKey(product.getRestaurantId());
+        if (restaurant == null) {
+            throw new RuntimeException("restaurant is not exist");
+        }
+
+        if (product.getStatus() == ProductStatusEnum.AVAILABLE && restaurant.getStatus() == RestaurantStatusEnum.OPEN) {
+            orderMessageDTO.setConfirmed(true);
+            orderMessageDTO.setPrice(product.getPrice());
+        } else {
+            orderMessageDTO.setConfirmed(false);
+        }
+
+        channel.addReturnListener(new ReturnCallback() {
+            @Override
+            public void handle(Return returnMessage) {
+                log.info("Message return: {}", returnMessage);
+            }
+        });
+
+        channel.basicAck(message.getEnvelope().getDeliveryTag(), false);
+        String msgToSend = objectMapper.writeValueAsString(orderMessageDTO);
+        // mandatory为true的时候表示开启了消息返回机制，如果没有路由到相应的队列，则会调用回调函数ReturnListener
+        channel.basicPublish("exchange.order.restaurant", "key.order", true, null,
+                msgToSend.getBytes(StandardCharsets.UTF_8));
+
     }));
 }
