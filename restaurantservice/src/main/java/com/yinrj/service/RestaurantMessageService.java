@@ -54,6 +54,7 @@ public class RestaurantMessageService {
 
             channel.queueBind("queue.restaurant", "exchange.order.restaurant", "key.restaurant");
 
+            channel.basicQos(2);
             channel.basicConsume("queue.restaurant", false, deliverCallback, consumerTag -> {
             });
             while (true) {
@@ -91,7 +92,11 @@ public class RestaurantMessageService {
                 log.info("Message return: {}", returnMessage);
             }
         });
-
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         channel.basicAck(message.getEnvelope().getDeliveryTag(), false);
         String msgToSend = objectMapper.writeValueAsString(orderMessageDTO);
         // mandatory为true的时候表示开启了消息返回机制，如果没有路由到相应的队列，则会调用回调函数ReturnListener

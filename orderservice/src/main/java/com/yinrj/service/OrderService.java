@@ -82,9 +82,10 @@ public class OrderService {
             };
             channel.addConfirmListener(confirmListener);
 
-            channel.basicPublish("exchange.order.restaurant", "key.restaurant", null, msgToSend.getBytes(StandardCharsets.UTF_8));
-            log.info("order service sent msg to restaurant");
-
+            for (int i = 0; i < 50; i++) {
+                channel.basicPublish("exchange.order.restaurant", "key.restaurant", null, msgToSend.getBytes(StandardCharsets.UTF_8));
+                log.info("order service sent msg to restaurant");
+            }
 
             Thread.sleep(10000l);
 
