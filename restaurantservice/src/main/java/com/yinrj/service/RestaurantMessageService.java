@@ -86,12 +86,10 @@ public class RestaurantMessageService {
                 orderMessageDTO.setConfirmed(false);
             }
 
-            channel.addReturnListener(new ReturnListener() {
+            channel.addReturnListener(new ReturnCallback() {
                 @Override
-                public void handleReturn(int replyCode, String replyText, String exchange, String routingKey,
-                                         AMQP.BasicProperties properties, byte[] body) throws IOException {
-                    log.info("Message Return: replyCode: {}, replyText: {}, exchange: {}, routingKey: {}, body: {}",
-                            replyCode, replyText, exchange, routingKey, new String(body));
+                public void handle(Return returnMessage) {
+                    log.info("Message return: {}", returnMessage);
                 }
             });
 
