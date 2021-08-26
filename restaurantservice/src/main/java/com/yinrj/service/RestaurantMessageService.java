@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -50,7 +52,9 @@ public class RestaurantMessageService {
 
             channel.exchangeDeclare("exchange.order.restaurant", BuiltinExchangeType.DIRECT, true, false, null);
 
-            channel.queueDeclare("queue.restaurant", true, false, false, null);
+            Map<String, Object> map = new HashMap<>();
+            map.put("x-message-ttl", 15000);
+            channel.queueDeclare("queue.restaurant", true, false, false, map);
 
             channel.queueBind("queue.restaurant", "exchange.order.restaurant", "key.restaurant");
 
