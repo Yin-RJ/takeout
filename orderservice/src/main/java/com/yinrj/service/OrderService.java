@@ -1,10 +1,7 @@
 package com.yinrj.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rabbitmq.client.Channel;
-import com.rabbitmq.client.ConfirmListener;
-import com.rabbitmq.client.Connection;
-import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.*;
 import com.yinrj.constant.ConfigConstant;
 import com.yinrj.dto.OrderMessageDTO;
 import com.yinrj.entity.OrderDetail;
@@ -82,10 +79,10 @@ public class OrderService {
             };
             channel.addConfirmListener(confirmListener);
 
-            for (int i = 0; i < 50; i++) {
-                channel.basicPublish("exchange.order.restaurant", "key.restaurant", null, msgToSend.getBytes(StandardCharsets.UTF_8));
-                log.info("order service sent msg to restaurant");
-            }
+            AMQP.BasicProperties properties = new AMQP.BasicProperties().builder().expiration("15000").build();
+
+            channel.basicPublish("exchange.order.restaurant", "key.restaurant", properties, msgToSend.getBytes(StandardCharsets.UTF_8));
+            log.info("order service sent msg to restaurant");
 
             Thread.sleep(10000l);
 
