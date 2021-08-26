@@ -52,8 +52,16 @@ public class RestaurantMessageService {
 
             channel.exchangeDeclare("exchange.order.restaurant", BuiltinExchangeType.DIRECT, true, false, null);
 
+            channel.exchangeDeclare("exchange.dlx", BuiltinExchangeType.TOPIC, true, false, null);
+
+            // 接收死信的队列
+            channel.queueDeclare("queue.dlx", true, false, false, null);
+
+            channel.queueBind("queue.dlx", "exchange.dlx", "#");
+
             Map<String, Object> map = new HashMap<>();
             map.put("x-message-ttl", 15000);
+            map.put("x-dead-letter-exchange", "exchange.dlx");
             channel.queueDeclare("queue.restaurant", true, false, false, map);
 
             channel.queueBind("queue.restaurant", "exchange.order.restaurant", "key.restaurant");

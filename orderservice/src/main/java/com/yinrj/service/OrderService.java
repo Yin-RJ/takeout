@@ -81,7 +81,8 @@ public class OrderService {
 
             AMQP.BasicProperties properties = new AMQP.BasicProperties().builder().expiration("15000").build();
 
-            channel.basicPublish("exchange.order.restaurant", "key.restaurant", properties, msgToSend.getBytes(StandardCharsets.UTF_8));
+            channel.basicPublish("exchange.order.restaurant", "key.restaurant", null,
+                    msgToSend.getBytes(StandardCharsets.UTF_8));
             log.info("order service sent msg to restaurant");
 
             Thread.sleep(10000l);
