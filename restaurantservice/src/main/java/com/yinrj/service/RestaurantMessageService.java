@@ -65,6 +65,7 @@ public class RestaurantMessageService {
         factory.setHost(ConfigConstant.MESSAGE_HOST);
         factory.setHandshakeTimeout(ConfigConstant.HANDSHAKE_TIMEOUT);
 
+        // 走出try块的时候connection和channel都会被关掉
         try (Connection connection = factory.newConnection();
              Channel channel = connection.createChannel()) {
             OrderMessageDTO orderMessageDTO = objectMapper.readValue(msg, OrderMessageDTO.class);
@@ -85,11 +86,24 @@ public class RestaurantMessageService {
                 orderMessageDTO.setConfirmed(false);
             }
 
+            channel.addReturnListener(new ReturnListener() {
+                @Override
+                public void handleReturn(int replyCode, String replyText, String exchange, String routingKey,
+                                         AMQP.BasicProperties properties, byte[] body) throws IOException {
+                    log.info("Message Return: replyCode: {}, replyText: {}, exchange: {}, routingKey: {}, body: {}",
+                            replyCode, replyText, exchange, routingKey, new String(body));
+                }
+            });
+
             String msgToSend = objectMapper.writeValueAsString(orderMessageDTO);
-            channel.basicPublish("exchange.order.restaurant", "key.order", null, msgToSend.getBytes(StandardCharsets.UTF_8));
+            // mandatory为true的时候表示开启了消息返回机制，如果没有路由到相应的队列，则会调用回调函数ReturnListener
+            channel.basicPublish("exchange.order.restaurant", "key.order", true, null,
+                    msgToSend.getBytes(StandardCharsets.UTF_8));
+
+            Thread.sleep(1000);
 
 
-        } catch (TimeoutException e) {
+        } catch (TimeoutException | InterruptedException e) {
             log.error(e.getMessage(), e);
         }
     }));
